@@ -76,3 +76,22 @@ func ValidateDatabaseName(name string) error {
 	}
 	return nil
 }
+
+// ValidateGKELocation accepts either a region ("us-central1") or a zone
+// ("us-central1-a"). Both match the same character class.
+func ValidateGKELocation(location string) error {
+	if !gcpRegionRe.MatchString(location) {
+		return fmt.Errorf("invalid cluster_location %q: must match %s", location, gcpRegionRe)
+	}
+	return nil
+}
+
+// ValidateKubernetesNamespace enforces RFC 1123 DNS-label syntax for
+// Kubernetes namespaces (lowercase alphanumeric and dashes, max 63 chars).
+// Reuses gceResourceRe because both rules collapse to the same regex.
+func ValidateKubernetesNamespace(ns string) error {
+	if !gceResourceRe.MatchString(ns) {
+		return fmt.Errorf("invalid namespace %q: must match %s", ns, gceResourceRe)
+	}
+	return nil
+}

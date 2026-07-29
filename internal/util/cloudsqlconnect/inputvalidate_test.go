@@ -104,6 +104,58 @@ func TestValidateDatabaseName(t *testing.T) {
 	}
 }
 
+func TestValidateGKELocation(t *testing.T) {
+	tcs := []struct {
+		desc    string
+		input   string
+		wantErr bool
+	}{
+		{desc: "region", input: "us-central1"},
+		{desc: "zone", input: "us-central1-a"},
+		{desc: "europe region", input: "europe-west1"},
+		{desc: "uppercase rejected", input: "US-Central1", wantErr: true},
+		{desc: "shell metachar rejected", input: "us-central1; rm -rf /", wantErr: true},
+		{desc: "empty rejected", input: "", wantErr: true},
+	}
+	for _, tc := range tcs {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := ValidateGKELocation(tc.input)
+			if tc.wantErr && err == nil {
+				t.Fatalf("expected error for %q, got none", tc.input)
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error for %q: %v", tc.input, err)
+			}
+		})
+	}
+}
+
+func TestValidateKubernetesNamespace(t *testing.T) {
+	tcs := []struct {
+		desc    string
+		input   string
+		wantErr bool
+	}{
+		{desc: "default", input: "default"},
+		{desc: "kebab case", input: "my-team"},
+		{desc: "uppercase rejected", input: "MyTeam", wantErr: true},
+		{desc: "shell metachar rejected", input: "ns; rm", wantErr: true},
+		{desc: "trailing hyphen rejected", input: "ns-", wantErr: true},
+		{desc: "starts with digit rejected", input: "1ns", wantErr: true},
+	}
+	for _, tc := range tcs {
+		t.Run(tc.desc, func(t *testing.T) {
+			err := ValidateKubernetesNamespace(tc.input)
+			if tc.wantErr && err == nil {
+				t.Fatalf("expected error for %q, got none", tc.input)
+			}
+			if !tc.wantErr && err != nil {
+				t.Fatalf("unexpected error for %q: %v", tc.input, err)
+			}
+		})
+	}
+}
+
 func repeat(s string, n int) string {
 	out := ""
 	for i := 0; i < n; i++ {
